@@ -1,5 +1,5 @@
 /**
- * this file misses a assignment
+ * this file misses a semicolon after the assignment
  */
 (function() {
     "use strict";
