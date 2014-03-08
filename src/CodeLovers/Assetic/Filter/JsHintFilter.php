@@ -33,14 +33,23 @@ class JsHintFilter extends BaseNodeFilter
      */
     public function filterLoad(AssetInterface $asset)
     {
-        $input = tempnam(sys_get_temp_dir(), 'assetic_jshint');
-        file_put_contents($input, $asset->getContent());
+        if ('' != ($sourceRoot = $asset->getSourceRoot()) && '' != ($sourcePath = $asset->getSourcePath())) {
+            $input = $sourceRoot . '/' . $sourcePath;
+            $remove = false;
+        } else {
+            $input = tempnam(sys_get_temp_dir(), 'assetic_jshint');
+            file_put_contents($input, $asset->getContent());
+            $remove = true;
+        }
 
         $pb = $this->createProcessBuilder(array($this->jsHintBinary));
         $pb->add($input);
         $proc = $pb->getProcess();
         $code = $proc->run();
-        unlink($input);
+
+        if (true === $remove) {
+            unlink($input);
+        }
 
         if (0 !== $code) {
             throw FilterException::fromProcess($proc)->setInput($asset->getContent());

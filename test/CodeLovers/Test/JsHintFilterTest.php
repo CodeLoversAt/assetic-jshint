@@ -11,6 +11,8 @@ namespace CodeLovers\Test;
 
 
 use Assetic\Asset\FileAsset;
+use Assetic\Asset\StringAsset;
+use Assetic\Exception\FilterException;
 use Assetic\Filter\FilterInterface;
 use Assetic\Test\Filter\FilterTestCase;
 use CodeLovers\Assetic\Filter\JsHintFilter;
@@ -25,8 +27,6 @@ class JsHintFilterTest extends FilterTestCase
     protected function setUp()
     {
         $jsHintBinary = $this->findExecutable('jshint', 'JSHINT_BIN');
-
-        printf("jsHintBin: %s\n", $jsHintBinary);
 
         if (!$jsHintBinary) {
             $this->markTestSkipped('unable to find `jshint` executable');
@@ -49,6 +49,21 @@ class JsHintFilterTest extends FilterTestCase
         $this->assertEquals($expected, $asset->getContent());
     }
 
+    public function testFilterLoadValidWithStringAssets()
+    {
+        $file = __DIR__ . '/../../js/valid.js';
+        $content = file_get_contents($file);
+        $asset = new StringAsset($content);
+        $asset->load();
+
+        // the filter will not change the content
+        $expected = $content;
+
+        $this->filter->filterLoad($asset);
+
+        $this->assertEquals($expected, $asset->getContent());
+    }
+
     /**
      * @expectedException \Assetic\Exception\FilterException
      */
@@ -58,7 +73,33 @@ class JsHintFilterTest extends FilterTestCase
         $asset = new FileAsset($file);
         $asset->load();
 
-        $this->filter->filterLoad($asset);
+        try {
+            $this->filter->filterLoad($asset);
+        } catch(FilterException $e) {
+            printf($e->getMessage());
+
+            throw $e;
+        }
+
+        $this->fail('expected a FilterException due to invalid javascript');
+    }
+
+    /**
+     * @expectedException \Assetic\Exception\FilterException
+     */
+    public function testFilterLoadInvalidWithStringAsset()
+    {
+        $file = __DIR__ . '/../../js/invalid.js';
+        $asset = new StringAsset(file_get_contents($file));
+        $asset->load();
+
+        try {
+            $this->filter->filterLoad($asset);
+        } catch(FilterException $e) {
+            printf($e->getMessage());
+
+            throw $e;
+        }
 
         $this->fail('expected a FilterException due to invalid javascript');
     }
