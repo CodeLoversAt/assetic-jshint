@@ -1,5 +1,5 @@
 {
-    "name": "codelovers.at/assetic-jshint",
+    "name": "codelovers/assetic-jshint",
     "description": "JSHint filter for assetic",
     "license": "MIT",
     "authors": [
